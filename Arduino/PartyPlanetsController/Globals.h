@@ -37,10 +37,9 @@ Bounce2::Button buttons[BUTTON_COUNT];
 #define ENCODER_THREE_PIN_A 17
 #define ENCODER_THREE_PIN_B 18
 
-PioEncoder encoders[ENCODER_COUNT] = {
-    PioEncoder(ENCODER_ONE_PIN_A),
-    PioEncoder(ENCODER_TWO_PIN_A),
-    PioEncoder(ENCODER_THREE_PIN_A)};
+PioEncoder encoderA(ENCODER_ONE_PIN_A);
+PioEncoder encoderB(ENCODER_TWO_PIN_A);
+PioEncoder encoderC(ENCODER_THREE_PIN_A);
 
 // Board functions.
 

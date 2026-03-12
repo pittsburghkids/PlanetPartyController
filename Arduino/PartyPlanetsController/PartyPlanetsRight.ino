@@ -42,21 +42,9 @@ void setupRight()
 {
   // Initalize levers.
   {
-
-    levers[0].encoder = &encoders[0];
-    levers[0].encoder->begin();
-    levers[0].encoder->flip(true);
-    delay(10);
-
-    levers[1].encoder = &encoders[1];
-    levers[1].encoder->begin();
-    levers[1].encoder->flip(true);
-    delay(10);
-
-    levers[1].encoder = &encoders[2];
-    levers[2].encoder->begin();
-    levers[2].encoder->flip(true);
-    delay(10);
+    levers[0].encoder = &encoderA;
+    levers[1].encoder = &encoderB;
+    levers[2].encoder = &encoderC;
   }
 }
 

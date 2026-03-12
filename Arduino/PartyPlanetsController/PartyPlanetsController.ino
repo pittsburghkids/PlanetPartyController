@@ -58,16 +58,29 @@ void setup()
   }
 
   // Encoders
-  for (int i = 0; i < ENCODER_COUNT; i++)
-  {
-    encoders[i].begin();
-  }
+  encoderA.begin();
+  encoderB.begin();
+  encoderC.begin();
 
   // Buttons
-  for (int i = 0; i < BUTTON_COUNT; i++)
   {
-    buttons[i].attach(SWITCH_ONE_PIN, INPUT_PULLUP);
-    buttons[i].setPressedState(LOW);
+    buttons[0].attach(SWITCH_ONE_PIN, INPUT_PULLUP);
+    buttons[0].setPressedState(LOW);
+
+    buttons[1].attach(SWITCH_TWO_PIN, INPUT_PULLUP);
+    buttons[1].setPressedState(LOW);
+
+    buttons[2].attach(SWITCH_THREE_PIN, INPUT_PULLUP);
+    buttons[2].setPressedState(LOW);
+
+    buttons[3].attach(SWITCH_FOUR_PIN, INPUT_PULLUP);
+    buttons[3].setPressedState(LOW);
+
+    buttons[4].attach(SWITCH_FIVE_PIN, INPUT_PULLUP);
+    buttons[4].setPressedState(LOW);
+
+    buttons[5].attach(SWITCH_SIX_PIN, INPUT_PULLUP);
+    buttons[5].setPressedState(LOW);
   }
 }
 
@@ -84,11 +97,11 @@ void loop()
   {
     buttons[i].update();
 
-    if (buttons[i].fell())
+    if (buttons[i].pressed())
     {
       MIDI.sendNoteOn(60 + i, 127, board + 1);
     }
-    else if (buttons[i].rose())
+    else if (buttons[i].released())
     {
       MIDI.sendNoteOff(60 + i, 0, board + 1);
     }
