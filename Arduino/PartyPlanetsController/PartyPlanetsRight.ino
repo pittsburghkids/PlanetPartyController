@@ -2,6 +2,9 @@
 
 #define RIGHT_MIDI_CHANNEL 3
 #define LEVER_COUNT 3
+#define RIGHT_LED_COUNT 24
+
+CRGBSet rightSegment = leds(0, RIGHT_LED_COUNT - 1);
 
 struct Lever
 {
@@ -50,6 +53,7 @@ void setupRight()
 
 void loopRight()
 {
+  // Serial.println("Encoder A: " + String(encoderA.getCount()) + " Encoder B: " + String(encoderB.getCount()) + " Encoder C: " + String(encoderC.getCount()));
   for (int i = 0; i < LEVER_COUNT; i++)
   {
     if (levers[i].update())
@@ -58,4 +62,6 @@ void loopRight()
       MIDI.sendControlChange(20 + i, value * 127, RIGHT_MIDI_CHANNEL);
     }
   }
+
+  rightSegment.fill_solid(CRGB::DarkRed);
 }

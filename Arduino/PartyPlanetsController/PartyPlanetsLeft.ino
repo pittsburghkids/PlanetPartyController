@@ -2,11 +2,6 @@
 
 #define LEFT_MIDI_CHANNEL 1
 
-#define LED_DATA_PIN 15
-#define LED_BRIGHTNESS 96
-#define LED_COUNT 16 * BUTTON_COUNT
-
-CRGBArray<LED_COUNT> leds;
 CRGBSet segments[BUTTON_COUNT] = {
     leds(32, 47),
     leds(16, 31),
@@ -18,9 +13,6 @@ CRGBSet segments[BUTTON_COUNT] = {
 
 void setupLeft()
 {
-  FastLED.addLeds<WS2812B, LED_DATA_PIN, GRB>(leds, LED_COUNT)
-      .setCorrection(TypicalLEDStrip);
-  FastLED.setBrightness(LED_BRIGHTNESS);
 }
 
 void loopLeft()
@@ -48,6 +40,4 @@ void loopLeft()
       segment.fill_solid(CRGB::Gray25);
     }
   }
-
-  FastLED.show();
 }

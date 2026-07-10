@@ -1,7 +1,7 @@
 #include "Globals.h"
 
-const uint8_t boardSelectA = 0;
-const uint8_t boardSelectB = 1;
+const uint8_t boardSelectA = 3;
+const uint8_t boardSelectB = 4;
 
 uint8_t board = 0;
 
@@ -25,6 +25,42 @@ void setup()
       delay(10);
       TinyUSBDevice.attach();
     }
+  }
+
+  // Encoders
+  encoderA.begin();
+  delay(10);
+  encoderB.begin();
+  delay(10);
+  encoderC.begin();
+  delay(10);
+
+  // Buttons
+  {
+    buttons[0].attach(SWITCH_ONE_PIN, INPUT_PULLUP);
+    buttons[0].setPressedState(LOW);
+
+    buttons[1].attach(SWITCH_TWO_PIN, INPUT_PULLUP);
+    buttons[1].setPressedState(LOW);
+
+    buttons[2].attach(SWITCH_THREE_PIN, INPUT_PULLUP);
+    buttons[2].setPressedState(LOW);
+
+    buttons[3].attach(SWITCH_FOUR_PIN, INPUT_PULLUP);
+    buttons[3].setPressedState(LOW);
+
+    buttons[4].attach(SWITCH_FIVE_PIN, INPUT_PULLUP);
+    buttons[4].setPressedState(LOW);
+
+    buttons[5].attach(SWITCH_SIX_PIN, INPUT_PULLUP);
+    buttons[5].setPressedState(LOW);
+  }
+
+  // LEDs
+  {
+    FastLED.addLeds<WS2812B, LED_DATA_PIN, GRB>(leds, LED_COUNT)
+        .setCorrection(TypicalLEDStrip);
+    FastLED.setBrightness(LED_BRIGHTNESS);
   }
 
   // Board select.
@@ -55,32 +91,6 @@ void setup()
     break;
   default:
     Serial.println("Invalid board selection!");
-  }
-
-  // Encoders
-  encoderA.begin();
-  encoderB.begin();
-  encoderC.begin();
-
-  // Buttons
-  {
-    buttons[0].attach(SWITCH_ONE_PIN, INPUT_PULLUP);
-    buttons[0].setPressedState(LOW);
-
-    buttons[1].attach(SWITCH_TWO_PIN, INPUT_PULLUP);
-    buttons[1].setPressedState(LOW);
-
-    buttons[2].attach(SWITCH_THREE_PIN, INPUT_PULLUP);
-    buttons[2].setPressedState(LOW);
-
-    buttons[3].attach(SWITCH_FOUR_PIN, INPUT_PULLUP);
-    buttons[3].setPressedState(LOW);
-
-    buttons[4].attach(SWITCH_FIVE_PIN, INPUT_PULLUP);
-    buttons[4].setPressedState(LOW);
-
-    buttons[5].attach(SWITCH_SIX_PIN, INPUT_PULLUP);
-    buttons[5].setPressedState(LOW);
   }
 }
 
@@ -120,4 +130,8 @@ void loop()
     loopRight();
     break;
   }
+
+  // LEDs
+
+  FastLED.show();
 }
