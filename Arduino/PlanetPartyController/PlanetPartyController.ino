@@ -1,10 +1,5 @@
 #include "Globals.h"
 
-const uint8_t boardSelectA = 3;
-const uint8_t boardSelectB = 4;
-
-uint8_t board = 0;
-
 void setup()
 {
   // Initialize USB.
@@ -27,14 +22,6 @@ void setup()
     }
   }
 
-  // Encoders
-  encoderA.begin();
-  delay(10);
-  encoderB.begin();
-  delay(10);
-  encoderC.begin();
-  delay(10);
-
   // Buttons
   {
     buttons[0].attach(SWITCH_ONE_PIN, INPUT_PULLUP);
@@ -56,6 +43,12 @@ void setup()
     buttons[5].setPressedState(LOW);
   }
 
+  // Encoders
+  {
+    encoderOne.begin();
+    encoderTwo.begin();
+  }
+
   // LEDs
   {
     FastLED.addLeds<WS2812B, LED_DATA_PIN, GRB>(leds, LED_COUNT)
@@ -65,32 +58,29 @@ void setup()
 
   // Board select.
   {
-    pinMode(boardSelectA, INPUT_PULLUP);
-    pinMode(boardSelectB, INPUT_PULLUP);
+    pinMode(BOARD_ID_0, INPUT_PULLUP);
+    pinMode(BOARD_ID_1, INPUT_PULLUP);
+    pinMode(BOARD_ID_2, INPUT_PULLUP);
 
-    int lsb = (digitalRead(boardSelectA) == LOW) ? 1 : 0;
-    int msb = (digitalRead(boardSelectB) == LOW) ? 1 : 0;
+    int boardId0 = (digitalRead(BOARD_ID_0) == LOW) ? 1 : 0;
+    int boardId1 = (digitalRead(BOARD_ID_1) == LOW) ? 1 : 0;
+    int boardId2 = (digitalRead(BOARD_ID_2) == LOW) ? 1 : 0;
 
-    board = (msb << 1) | lsb;
+    boardId = (boardId2 << 2) | (boardId1 << 1) | boardId0;
   }
 
   // Board setup.
-  switch (board)
+  switch (boardId)
   {
   case 0:
-    Serial.println("Board: Left");
-    setupLeft();
-    break;
-  case 1:
-    Serial.println("Board: Center");
     setupCenter();
     break;
-  case 2:
-    Serial.println("Board: Right");
-    setupRight();
+  case 1:
+    setupPegs();
     break;
   default:
-    Serial.println("Invalid board selection!");
+    setupLever();
+    break;
   }
 }
 
@@ -109,25 +99,25 @@ void loop()
 
     if (buttons[i].pressed())
     {
-      MIDI.sendNoteOn(60 + i, 127, board + 1);
+      MIDI.sendNoteOn(60 + i, 127, boardId + 1);
     }
     else if (buttons[i].released())
     {
-      MIDI.sendNoteOff(60 + i, 0, board + 1);
+      MIDI.sendNoteOff(60 + i, 0, boardId + 1);
     }
   }
 
   // Board funtions.
-  switch (board)
+  switch (boardId)
   {
   case 0:
-    loopLeft();
-    break;
-  case 1:
     loopCenter();
     break;
-  case 2:
-    loopRight();
+  case 1:
+    loopPegs();
+    break;
+  default:
+    loopLever();
     break;
   }
 

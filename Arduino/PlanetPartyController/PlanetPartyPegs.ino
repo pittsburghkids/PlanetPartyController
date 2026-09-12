@@ -1,7 +1,5 @@
 #include "Globals.h"
 
-#define LEFT_MIDI_CHANNEL 1
-
 CRGBSet segments[BUTTON_COUNT] = {
     leds(32, 47),
     leds(16, 31),
@@ -11,11 +9,11 @@ CRGBSet segments[BUTTON_COUNT] = {
     leds(48, 63),
 };
 
-void setupLeft()
+void setupPegs()
 {
 }
 
-void loopLeft()
+void loopPegs()
 {
   for (int i = 0; i < BUTTON_COUNT; i++)
   {

@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
-#include "../../Arduino/PartyPlanetsController/PartyPlanetsController.ino"
+#include "../../Arduino/PlanetPartyController/PlanetPartyController.ino"
 
-#include "../../Arduino/PartyPlanetsController/PartyPlanetsLeft.ino"
-#include "../../Arduino/PartyPlanetsController/PartyPlanetsCenter.ino"
-#include "../../Arduino/PartyPlanetsController/PartyPlanetsRight.ino"
+#include "../../Arduino/PlanetPartyController/PlanetPartyPegs.ino"
+#include "../../Arduino/PlanetPartyController/PlanetPartyCenter.ino"
+#include "../../Arduino/PlanetPartyController/PlanetPartyLever.ino"
