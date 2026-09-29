@@ -11,6 +11,7 @@ int lastValue = 0;
 
 void setupLever()
 {
+  leverSegment = CRGB::White;
 }
 
 void loopLever()
@@ -26,14 +27,10 @@ void loopLever()
 
     // Send normalized value as MIDI CC.
     float normalizedValue = (leverMax == leverMin) ? 0.0f : (float)(value - leverMin) / (float)(leverMax - leverMin);
-    MIDI.sendControlChange(20, normalizedValue * 127, boardId + 1);
+    MIDI.sendControlChange(20, (1 - normalizedValue) * 127, boardId + 1);
 
     // Update LED segment.
-    for (int i = 0; i < LEVER_LED_COUNT; i++)
-    {
-      float threshold = (float)i / (float)(LEVER_LED_COUNT - 1);
-      leverSegment[i] = (normalizedValue >= threshold) ? CRGB::White : CRGB::Black;
-    }
+    fillGauge(leverSegment, 1 - normalizedValue, CRGB::White, PARTY_PURPLE);
 
     lastValue = value;
   }

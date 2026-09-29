@@ -1,5 +1,7 @@
 #include "Globals.h"
 
+#define CENTER_BUTTON_COUNT 4
+#define HOLD_DURATION 3000
 #define CENTER_LED_COUNT 24
 
 #define SEND_INTERVAL 1
@@ -14,12 +16,37 @@ CRGBSet segment = leds(0, CENTER_LED_COUNT - 1);
 PioEncoder *knobEncoderOne = &encoderOne;
 PioEncoder *knobEncoderTwo = &encoderTwo;
 
+bool holding = false;
+unsigned long startTime = 0;
+
 void setupCenter()
 {
 }
 
 void loopCenter()
 {
+  for (int i = 0; i < CENTER_BUTTON_COUNT; i++)
+  {
+    if (buttons[i].pressed())
+    {
+      MIDI.sendNoteOn(60 + i, 127, boardId + 1);
+    }
+    else if (buttons[i].released())
+    {
+      MIDI.sendNoteOff(60 + i, 0, boardId + 1);
+    }
+  }
+
+  if (buttons[3].pressed())
+  {
+    holding = true;
+    startTime = millis();
+  }
+  else if (buttons[3].released())
+  {
+    holding = false;
+  }
+
   // Rate limit.
   if (millis() - lastSend > SEND_INTERVAL)
   {
@@ -51,17 +78,15 @@ void loopCenter()
     lastSend = millis();
   }
 
-  int counter = (millis() * 2 / 1000) % CENTER_LED_COUNT;
-
-  for (int j = 0; j < segment.size(); j++)
+  if (holding)
   {
-    if (j <= counter)
-    {
-      segment[j] = CRGB::Purple;
-    }
-    else
-    {
-      segment[j] = CRGB::Black;
-    }
+    float t = (millis() - startTime) / (float)HOLD_DURATION;
+    t = constrain(t, 0.0f, 1.0f);
+
+    fillGauge(segment, t, CRGB::White, PARTY_PURPLE);
+  }
+  else
+  {
+    segment = CRGB::White;
   }
 }

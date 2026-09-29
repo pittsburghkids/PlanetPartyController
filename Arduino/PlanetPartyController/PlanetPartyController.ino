@@ -96,15 +96,6 @@ void loop()
   for (int i = 0; i < BUTTON_COUNT; i++)
   {
     buttons[i].update();
-
-    if (buttons[i].pressed())
-    {
-      MIDI.sendNoteOn(60 + i, 127, boardId + 1);
-    }
-    else if (buttons[i].released())
-    {
-      MIDI.sendNoteOff(60 + i, 0, boardId + 1);
-    }
   }
 
   // Board funtions.

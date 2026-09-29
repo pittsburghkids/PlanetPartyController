@@ -10,6 +10,8 @@
 #define BOARD_ID_1 3
 #define BOARD_ID_2 4
 
+#define PARTY_PURPLE CRGB(128, 0, 255)
+
 uint8_t boardId = 0;
 
 // MIDI
@@ -20,7 +22,7 @@ MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, MIDI);
 // LEDS
 
 #define LED_DATA_PIN 16
-#define LED_BRIGHTNESS 96
+#define LED_BRIGHTNESS 128
 #define LED_COUNT 128
 CRGBArray<LED_COUNT> leds;
 
@@ -60,3 +62,25 @@ extern void loopCenter();
 
 extern void setupLever();
 extern void loopLever();
+
+void fillGauge(CRGBSet &segment, float value, CRGB baseColor, CRGB fillColor)
+{
+    float position = value * segment.size();
+    int whole = (int)position;
+    float fraction = position - whole;
+
+    // Fill with the base color.
+    segment = baseColor;
+
+    // Fill "whole" part of the gauge.
+    for (int i = 0; i < whole && i < segment.size(); i++)
+    {
+        segment[i] = fillColor;
+    }
+
+    // Fill "fraction" part of the gauge.
+    if (whole < segment.size())
+    {
+        segment[whole] = blend(baseColor, fillColor, uint8_t(fraction * 255));
+    }
+}
