@@ -3,17 +3,13 @@
 #define PEG_COUNT 6
 #define PEG_INSERT_DURATION 16000
 
-#define PEG_BREATHE_BPM 12
-#define PEG_BREATHE_MIN 32
-#define PEG_BREATHE_MAX 128
-
 #define PEG_FLASH_BPM 120
 #define PEG_FLASH_MIN 32
 #define PEG_FLASH_MAX 128
 
-// Drained: very dim white, faded into from the end of the drain.
-#define PEG_DRAINED_FADE 1000
-#define PEG_DRAINED_COLOR CRGB(8, 8, 8)
+// Drained: two purple pulses timed from the end of the drain, then dim.
+#define PEG_DRAINED_PULSES 2
+#define PEG_DRAINED_FADE (PEG_DRAINED_PULSES * 60000UL / PEG_FLASH_BPM)
 
 CRGBSet segments[PEG_COUNT] = {
     leds(0, 15),
@@ -71,8 +67,8 @@ void loopPegs()
     if (peg->state == Idle)
     {
       // Breathe with a sine wave on the clock.
-      segment = CRGB::White;
-      segment.nscale8(beatsin8(PEG_BREATHE_BPM, PEG_BREATHE_MIN, PEG_BREATHE_MAX));
+      segment = PARTY_WHITE;
+      segment.nscale8(beatsin8(BREATHE_BPM, BREATHE_MIN, BREATHE_MAX));
     }
     else if (peg->state == Draining)
     {
@@ -80,7 +76,7 @@ void loopPegs()
 
       if (t <= 1)
       {
-        fillGauge(segment, 1 - t, CRGB::White, PARTY_PURPLE);
+        fillGauge(segment, 1 - t, PARTY_DIM, PARTY_PURPLE);
 
         // Pulse on the global clock, not insertTime, so all draining pegs beat together.
         segment.nscale8(beatsin8(PEG_FLASH_BPM, PEG_FLASH_MIN, PEG_FLASH_MAX));
@@ -94,18 +90,19 @@ void loopPegs()
 
     if (peg->state == Empty)
     {
-      unsigned long elapsed = millis() - peg->insertTime - PEG_INSERT_DURATION;
+      unsigned long drainedTime = peg->insertTime + PEG_INSERT_DURATION;
+      unsigned long elapsed = millis() - drainedTime;
 
       if (elapsed < PEG_DRAINED_FADE)
       {
-        // Crossfade from the empty gauge, still pulsing on the global clock, down to dim.
-        CRGB pulse = CRGB::White;
-        pulse.nscale8(beatsin8(PEG_FLASH_BPM, PEG_FLASH_MIN, PEG_FLASH_MAX));
-        segment = blend(pulse, PEG_DRAINED_COLOR, ease8InOutQuad(elapsed * 255 / PEG_DRAINED_FADE));
+        // Timebase at the drain end and phase 192 (sine trough) so each pulse starts and ends at its dimmest.
+        CRGB pulse = PARTY_PURPLE;
+        pulse.nscale8(beatsin8(PEG_FLASH_BPM, PEG_FLASH_MIN, PEG_FLASH_MAX, drainedTime, 192));
+        segment = pulse;
       }
       else
       {
-        segment = PEG_DRAINED_COLOR;
+        segment = PARTY_DIM;
       }
     }
   }

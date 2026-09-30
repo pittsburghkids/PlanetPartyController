@@ -10,7 +10,13 @@
 #define BOARD_ID_1 3
 #define BOARD_ID_2 4
 
-#define PARTY_PURPLE CRGB(128, 0, 255)
+#define PARTY_PURPLE CRGB(127, 0, 255)
+#define PARTY_WHITE CRGB::White
+#define PARTY_DIM CRGB(15, 15, 15)
+
+#define BREATHE_BPM 12
+#define BREATHE_MIN 32
+#define BREATHE_MAX 255
 
 uint8_t boardId = 0;
 
@@ -22,7 +28,7 @@ MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, MIDI);
 // LEDS
 
 #define LED_DATA_PIN 16
-#define LED_BRIGHTNESS 128
+#define LED_BRIGHTNESS 255
 #define LED_COUNT 128
 CRGBArray<LED_COUNT> leds;
 

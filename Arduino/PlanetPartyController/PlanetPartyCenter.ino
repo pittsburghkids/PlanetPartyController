@@ -83,10 +83,11 @@ void loopCenter()
     float t = (millis() - startTime) / (float)HOLD_DURATION;
     t = constrain(t, 0.0f, 1.0f);
 
-    fillGauge(segment, t, CRGB::White, PARTY_PURPLE);
+    fillGauge(segment, t, PARTY_DIM, PARTY_PURPLE);
   }
   else
   {
-    segment = CRGB::White;
+    segment = PARTY_WHITE;
+    segment.nscale8(beatsin8(BREATHE_BPM, BREATHE_MIN, BREATHE_MAX));
   }
 }

@@ -30,7 +30,7 @@ void loopLever()
     MIDI.sendControlChange(20, (1 - normalizedValue) * 127, boardId + 1);
 
     // Update LED segment.
-    fillGauge(leverSegment, 1 - normalizedValue, CRGB::White, PARTY_PURPLE);
+    fillGauge(leverSegment, 1 - normalizedValue, PARTY_DIM, PARTY_PURPLE);
 
     lastValue = value;
   }
