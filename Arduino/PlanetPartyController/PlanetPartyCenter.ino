@@ -1,8 +1,13 @@
 #include "Globals.h"
 
 #define CENTER_BUTTON_COUNT 4
-#define HOLD_DURATION 3000
 #define CENTER_LED_COUNT 24
+
+// Launch meter. Mirrored in PanelButtonMain.cs — keep these in sync.
+#define FILL_DURATION 3000   // ms, empty to full while engaged
+#define REPRESS_WINDOW 400   // ms after a release that still counts as engaged
+#define DRAIN_DURATION 3000  // ms, full to empty once disengaged
+#define FLIGHT_DURATION 3000 // ms, meter on hold after a launch (SceneManager.flightDuration)
 
 #define SEND_INTERVAL 1
 
@@ -16,8 +21,11 @@ CRGBSet segment = leds(0, CENTER_LED_COUNT - 1);
 PioEncoder *knobEncoderOne = &encoderOne;
 PioEncoder *knobEncoderTwo = &encoderTwo;
 
-bool holding = false;
-unsigned long startTime = 0;
+float meter = 0;
+bool armed = true;              // false while held through a flight, until released
+unsigned long engagedUntil = 0; // end of the re-press window
+unsigned long flyingUntil = 0;  // end of the post-launch hold
+unsigned long lastMeterUpdate = 0;
 
 void setupCenter()
 {
@@ -37,14 +45,36 @@ void loopCenter()
     }
   }
 
-  if (buttons[3].pressed())
+  // Launch meter.
   {
-    holding = true;
-    startTime = millis();
-  }
-  else if (buttons[3].released())
-  {
-    holding = false;
+    unsigned long now = millis();
+    float dt = now - lastMeterUpdate;
+    lastMeterUpdate = now;
+
+    bool held = buttons[3].isPressed();
+
+    if (buttons[3].released())
+    {
+      if (armed)
+        engagedUntil = now + REPRESS_WINDOW; // releasing a flight-hold doesn't open the window
+      armed = true;
+    }
+
+    // On hold while flying. Anything still held on arrival must be released first.
+    if ((long)(flyingUntil - now) > 0)
+    {
+      meter = 0;
+      engagedUntil = now;
+      armed = !held;
+    }
+
+    bool engaged = (held && armed) || (long)(engagedUntil - now) > 0;
+    meter += engaged ? dt / FILL_DURATION : -dt / DRAIN_DURATION;
+    meter = constrain(meter, 0.0f, 1.0f);
+
+    // Launch. The flight hold above resets the meter from the next loop.
+    if (meter >= 1.0f)
+      flyingUntil = now + FLIGHT_DURATION;
   }
 
   // Rate limit.
@@ -78,16 +108,12 @@ void loopCenter()
     lastSend = millis();
   }
 
-  if (holding)
+  if (meter > 0)
   {
-    float t = (millis() - startTime) / (float)HOLD_DURATION;
-    t = constrain(t, 0.0f, 1.0f);
-
-    fillGauge(segment, t, PARTY_DIM, PARTY_PURPLE);
+    partyGauge(segment, meter);
   }
   else
   {
     segment = PARTY_WHITE;
-    segment.nscale8(beatsin8(BREATHE_BPM, BREATHE_MIN, BREATHE_MAX));
   }
 }

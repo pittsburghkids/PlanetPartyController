@@ -53,7 +53,7 @@ void setup()
   {
     FastLED.addLeds<WS2812B, LED_DATA_PIN, GRB>(leds, LED_COUNT)
         .setCorrection(TypicalLEDStrip);
-    FastLED.setBrightness(LED_BRIGHTNESS);
+    FastLED.setBrightness(208);
   }
 
   // Board select.

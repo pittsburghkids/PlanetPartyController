@@ -3,10 +3,6 @@
 #define PEG_COUNT 6
 #define PEG_INSERT_DURATION 16000
 
-#define PEG_FLASH_BPM 120
-#define PEG_FLASH_MIN 32
-#define PEG_FLASH_MAX 128
-
 // Drained: two purple pulses timed from the end of the drain, then dim.
 #define PEG_DRAINED_PULSES 2
 #define PEG_DRAINED_FADE (PEG_DRAINED_PULSES * 60000UL / PEG_FLASH_BPM)
@@ -66,9 +62,7 @@ void loopPegs()
 
     if (peg->state == Idle)
     {
-      // Breathe with a sine wave on the clock.
-      segment = PARTY_WHITE;
-      segment.nscale8(beatsin8(BREATHE_BPM, BREATHE_MIN, BREATHE_MAX));
+      segment = breathe(boardId * 8 + i);
     }
     else if (peg->state == Draining)
     {
@@ -76,10 +70,7 @@ void loopPegs()
 
       if (t <= 1)
       {
-        fillGauge(segment, 1 - t, PARTY_DIM, PARTY_PURPLE);
-
-        // Pulse on the global clock, not insertTime, so all draining pegs beat together.
-        segment.nscale8(beatsin8(PEG_FLASH_BPM, PEG_FLASH_MIN, PEG_FLASH_MAX));
+        partyGauge(segment, 1 - t);
       }
       else
       {

@@ -11,12 +11,17 @@
 #define BOARD_ID_2 4
 
 #define PARTY_PURPLE CRGB(127, 0, 255)
-#define PARTY_WHITE CRGB::White
-#define PARTY_DIM CRGB(15, 15, 15)
+#define PARTY_WHITE CRGB(192, 96, 255)
+#define PARTY_DIM (PARTY_WHITE.scale8(16))
 
-#define BREATHE_BPM 12
-#define BREATHE_MIN 32
-#define BREATHE_MAX 255
+// Purple pulse on active gauges, shared by all boards.
+#define PEG_FLASH_BPM 120
+#define PEG_FLASH_MIN 32
+#define PEG_FLASH_MAX 255
+
+// Idle breathing. Each light gets its own pace in this range, plus its own phase.
+#define BREATHE_BPM_MIN 14
+#define BREATHE_BPM_MAX 20
 
 uint8_t boardId = 0;
 
@@ -28,7 +33,6 @@ MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, MIDI);
 // LEDS
 
 #define LED_DATA_PIN 16
-#define LED_BRIGHTNESS 255
 #define LED_COUNT 128
 CRGBArray<LED_COUNT> leds;
 
@@ -69,6 +73,18 @@ extern void loopCenter();
 extern void setupLever();
 extern void loopLever();
 
+// Idle, breathing between dim and white at a pace and phase picked from the seed so nothing breathes in lockstep.
+// Seed with boardId * 8 + segment index so it's unique across boards.
+CRGB breathe(uint8_t seed)
+{
+    uint8_t h = seed * 157 + 71; // scatter neighboring seeds
+
+    // accum88 (8.8 fixed point) BPM, so paces fall between whole BPMs and drift apart over time.
+    accum88 bpm = (BREATHE_BPM_MIN << 8) + scale16by8((BREATHE_BPM_MAX - BREATHE_BPM_MIN) << 8, h);
+
+    return blend(PARTY_DIM, PARTY_WHITE, beatsin8(bpm, 0, 255, 0, uint8_t(h * 3)));
+}
+
 void fillGauge(CRGBSet &segment, float value, CRGB baseColor, CRGB fillColor)
 {
     float position = value * segment.size();
@@ -89,4 +105,13 @@ void fillGauge(CRGBSet &segment, float value, CRGB baseColor, CRGB fillColor)
     {
         segment[whole] = blend(baseColor, fillColor, uint8_t(fraction * 255));
     }
+}
+
+// Pulsing purple gauge against a dim background.
+void partyGauge(CRGBSet &segment, float fill)
+{
+    CRGB partyPulse = PARTY_PURPLE;
+    partyPulse.nscale8(beatsin8(PEG_FLASH_BPM, PEG_FLASH_MIN, PEG_FLASH_MAX));
+
+    fillGauge(segment, fill, PARTY_DIM, partyPulse);
 }
