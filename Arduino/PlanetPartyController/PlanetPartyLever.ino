@@ -16,6 +16,10 @@ int lastValue = 0;
 // 0 at rest, 1 fully pulled, with the dead zones removed and the middle rescaled to 0-1.
 float leverFill(int value)
 {
+  // No range learned yet, so read as empty.
+  if (leverMax <= leverMin)
+    return 0.0f;
+
   float normalizedValue = (leverMax == leverMin) ? 0.0f : (float)(value - leverMin) / (float)(leverMax - leverMin);
   float fill = (1 - normalizedValue - LEVER_DEADZONE) / (1 - 2 * LEVER_DEADZONE);
   return constrain(fill, 0.0f, 1.0f);
