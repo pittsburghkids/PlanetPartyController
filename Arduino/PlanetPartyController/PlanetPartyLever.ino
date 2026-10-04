@@ -2,9 +2,13 @@
 
 #define LEVER_LED_COUNT 8
 
-// Fraction of the range at each end that reads as empty/full. People push and pull the lever
-// past where it settles, so leverMin/leverMax overshoot the actual end positions.
+// Percentage to ignore at ends of range.
 #define LEVER_DEADZONE 0.025f
+
+// Fast rise / slow fall.
+#define LEVER_RISE_TIME 100
+#define LEVER_FALL_TIME 750
+#define LEVER_SNAP 0.001f
 
 PioEncoder *leverEncoder = &encoderOne;
 CRGBSet leverSegment = leds(0, LEVER_LED_COUNT - 1);
@@ -13,15 +17,26 @@ int leverMax = INT_MIN;
 int leverMin = INT_MAX;
 int lastValue = 0;
 
-// 0 at rest, 1 fully pulled, with the dead zones removed and the middle rescaled to 0-1.
+float currentLevel = 0;
+float targetLevel = 0;
+unsigned long lastLevelUpdate = 0;
+
+int currentCCValue = 0;
+int lastCCValue = 0;
+
+float mapFloat(float value, float fromLow, float fromHigh, float toLow, float toHigh)
+{
+  return (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow;
+}
+
 float leverFill(int value)
 {
-  // No range learned yet, so read as empty.
   if (leverMax <= leverMin)
     return 0.0f;
 
-  float normalizedValue = (leverMax == leverMin) ? 0.0f : (float)(value - leverMin) / (float)(leverMax - leverMin);
-  float fill = (1 - normalizedValue - LEVER_DEADZONE) / (1 - 2 * LEVER_DEADZONE);
+  float deadzone = (leverMax - leverMin) * LEVER_DEADZONE;
+  float fill = mapFloat(value, leverMax - deadzone, leverMin + deadzone, 0, 1);
+
   return constrain(fill, 0.0f, 1.0f);
 }
 
@@ -33,31 +48,53 @@ void setupLever()
 void loopLever()
 {
   int value = leverEncoder->getCount();
+
+  // Only update when the lever moves.
   if (value != lastValue)
   {
-    // Update min/max.
-    if (value > leverMax)
-      leverMax = value;
-    else if (value < leverMin)
-      leverMin = value;
+    leverMax = max(leverMax, value);
+    leverMin = min(leverMin, value);
 
-    // Send normalized value as MIDI CC.
-    MIDI.sendControlChange(20, leverFill(value) * 127, boardId + 1);
+    targetLevel = leverFill(value);
 
     lastValue = value;
   }
 
-  // LED update.
-  {
-    float fill = leverFill(value);
+  unsigned long now = millis();
+  float dt = now - lastLevelUpdate;
+  lastLevelUpdate = now;
 
-    if (fill > 0)
-    {
-      partyGauge(leverSegment, fill);
-    }
+  // Lerp toward the target.
+  if (targetLevel != currentLevel)
+  {
+
+    if (targetLevel > currentLevel)
+      currentLevel += (targetLevel - currentLevel) * dt / LEVER_RISE_TIME;
     else
+      currentLevel += (targetLevel - currentLevel) * dt / LEVER_FALL_TIME;
+
+    // Snap when close.
+    if (fabs(targetLevel - currentLevel) < LEVER_SNAP)
+      currentLevel = targetLevel;
+
+    currentLevel = constrain(currentLevel, 0.0f, 1.0f);
+
+    // Send normalized value as MIDI CC.
+    currentCCValue = (int)(currentLevel * 127);
+    if (currentCCValue != lastCCValue)
     {
-      leverSegment = PARTY_WHITE;
+      MIDI.sendControlChange(20, currentCCValue, boardId + 1);
+      lastCCValue = currentCCValue;
     }
+  }
+
+  // LED update.
+  if (currentLevel > 0)
+  {
+    partyGauge(leverSegment, currentLevel);
+  }
+  else
+  {
+    leverSegment = PARTY_WHITE;
   }
 }
